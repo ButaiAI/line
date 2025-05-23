@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>統合テスト - 野菜集荷管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 15px;
+        }
+
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .test-section h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-result {
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            border-left: 4px solid;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border-left-color: #28a745;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
+
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-left-color: #17a2b8;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left-color: #ffc107;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            margin: 10px 10px 10px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+
+        .btn-large {
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            transition: width 0.3s ease;
+            border-radius: 15px;
+        }
+
+        .config-section {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .config-label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+
+        .config-input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .log-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 1px solid #4a5568;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 野菜集荷管理システム 統合テスト</h1>
+        
+        <!-- Configuration Section -->
+        <div class="config-section">
+            <h3>🔧 テスト設定</h3>
+            <div class="config-grid">
+                <div class="config-item">
+                    <label class="config-label">API Base URL:</label>
+                    <input type="text" class="config-input" id="apiBaseUrl" value="/api">
+                </div>
+                <div class="config-item">
+                    <label class="config-label">テストユーザー LINE ID:</label>
+                    <input type="text" class="config-input" id="testLineId" value="test-user-001">
+                </div>
+                <div class="config-item">
+                    <label class="config-label">テストユーザー名:</label>
+                    <input type="text" class="config-input" id="testUserName" value="テストユーザー">
+                </div>
+                <div class="config-item">
+                    <label class="config-label">管理者トークン:</label>
+                    <input type="password" class="config-input" id="adminToken" placeholder="管理者JWTトークン">
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar" id="progressBarContainer" style="display: none;">
+            <div class="progress" id="progressBar" style="width: 0%;"></div>
+        </div>
+
+        <!-- Overall Stats -->
+        <div class="stats-grid" id="statsGrid" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTests">0</div>
+                <div class="stat-label">総テスト数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="passedTests">0</div>
+                <div class="stat-label">成功</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="failedTests">0</div>
+                <div class="stat-label">失敗</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="testDuration">0ms</div>
+                <div class="stat-label">実行時間</div>
+            </div>
+        </div>
+
+        <!-- Authentication Tests -->
+        <div class="test-section">
+            <h2>🔐 認証テスト</h2>
+            <button class="btn" onclick="testAuth()">認証テスト実行</button>
+            <button class="btn btn-secondary" onclick="clearResults('authResults')">クリア</button>
+            <div id="authResults"></div>
+        </div>
+
+        <!-- Vegetable API Tests -->
+        <div class="test-section">
+            <h2>🌱 野菜品目API テスト</h2>
+            <button class="btn" onclick="testVegetableAPI()">品目APIテスト実行</button>
+            <button class="btn btn-secondary" onclick="clearResults('vegetableResults')">クリア</button>
+            <div id="vegetableResults"></div>
+        </div>
+
+        <!-- Harvest Request API Tests -->
+        <div class="test-section">
+            <h2>📝 集荷申請API テスト</h2>
+            <button class="btn" onclick="testHarvestAPI()">申請APIテスト実行</button>
+            <button class="btn btn-secondary" onclick="clearResults('harvestResults')">クリア</button>
+            <div id="harvestResults"></div>
+        </div>
+
+        <!-- User Management API Tests -->
+        <div class="test-section">
+            <h2>👥 ユーザー管理API テスト</h2>
+            <button class="btn" onclick="testUserAPI()">ユーザーAPIテスト実行</button>
+            <button class="btn btn-secondary" onclick="clearResults('userResults')">クリア</button>
+            <div id="userResults"></div>
+        </div>
+
+        <!-- LINE Integration Tests -->
+        <div class="test-section">
+            <h2>📱 LINE連携テスト</h2>
+            <button class="btn" onclick="testLINEIntegration()">LINE連携テスト実行</button>
+            <button class="btn btn-secondary" onclick="clearResults('lineResults')">クリア</button>
+            <div id="lineResults"></div>
+        </div>
+
+        <!-- Admin API Tests -->
+        <div class="test-section">
+            <h2>⚙️ 管理機能テスト</h2>
+            <button class="btn" onclick="testAdminAPI()">管理APIテスト実行</button>
+            <button class="btn btn-secondary" onclick="clearResults('adminResults')">クリア</button>
+            <div id="adminResults"></div>
+        </div>
+
+        <!-- Performance Tests -->
+        <div class="test-section">
+            <h2>⚡ パフォーマンステスト</h2>
+            <button class="btn" onclick="testPerformance()">パフォーマンステスト実行</button>
+            <button class="btn btn-secondary" onclick="clearResults('performanceResults')">クリア</button>
+            <div id="performanceResults"></div>
+        </div>
+
+        <!-- Error Handling Tests -->
+        <div class="test-section">
+            <h2>🚨 エラーハンドリングテスト</h2>
+            <button class="btn btn-warning" onclick="testErrorHandling()">エラーテスト実行</button>
+            <button class="btn btn-secondary" onclick="clearResults('errorResults')">クリア</button>
+            <div id="errorResults"></div>
+        </div>
+
+        <!-- Overall Results -->
+        <div class="test-section">
+            <h2>📊 総合結果</h2>
+            <button class="btn btn-large" onclick="runAllTests()">🚀 全テスト実行</button>
+            <button class="btn btn-danger" onclick="clearAllResults()">🗑️ 全結果クリア</button>
+            <div id="overallResults"></div>
+            <div class="log-output" id="testLog" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global test state
+        let testStats = {
+            total: 0,
+            passed: 0,
+            failed: 0,
+            startTime: 0
+        };
+
+        let authToken = null;
+
+        // Utility functions
+        function getApiUrl() {
+            return document.getElementById('apiBaseUrl').value;
+        }
+
+        function getTestConfig() {
+            return {
+                lineId: document.getElementById('testLineId').value,
+                userName: document.getElementById('testUserName').value,
+                adminToken: document.getElementById('adminToken').value
+            };
+        }
+
+        function logResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(resultDiv);
+            container.scrollTop = container.scrollHeight;
+
+            // Update stats
+            if (type === 'success') testStats.passed++;
+            if (type === 'error') testStats.failed++;
+            testStats.total++;
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('totalTests').textContent = testStats.total;
+            document.getElementById('passedTests').textContent = testStats.passed;
+            document.getElementById('failedTests').textContent = testStats.failed;
+            
+            if (testStats.startTime) {
+                const duration = Date.now() - testStats.startTime;
+                document.getElementById('testDuration').textContent = `${duration}ms`;
+            }
+
+            document.getElementById('statsGrid').style.display = 'grid';
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        function clearAllResults() {
+            const resultContainers = ['authResults', 'vegetableResults', 'harvestResults', 
+                                    'userResults', 'lineResults', 'adminResults', 
+                                    'performanceResults', 'errorResults', 'overallResults'];
+            resultContainers.forEach(clearResults);
+            
+            testStats = { total: 0, passed: 0, failed: 0, startTime: 0 };
+            updateStats();
+            document.getElementById('statsGrid').style.display = 'none';
+        }
+
+        async function makeApiCall(endpoint, options = {}) {
+            const url = `${getApiUrl()}${endpoint}`;
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (authToken) {
+                defaultOptions.headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            const response = await fetch(url, { ...defaultOptions, ...options });
+            const data = await response.json();
+            
+            return { response, data, status: response.status };
+        }
+
+        // Test Authentication
+        async function testAuth() {
+            const containerId = 'authResults';
+            logResult(containerId, '🔐 認証テスト開始', 'info');
+
+            try {
+                const config = getTestConfig();
+                
+                // Test login
+                logResult(containerId, 'テストログイン実行中...', 'info');
+                const { response, data } = await makeApiCall('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        lineId: config.lineId,
+                        userName: config.userName
+                    })
+                });
+
+                if (response.ok && data.success) {
+                    authToken = data.token;
+                    logResult(containerId, '✅ ログイン成功', 'success');
+                    logResult(containerId, `ユーザー: ${data.user.name}`, 'info');
+                } else {
+                    logResult(containerId, `❌ ログイン失敗: ${data.error}`, 'error');
+                    return;
+                }
+
+                // Test token validation
+                logResult(containerId, 'トークン検証中...', 'info');
+                const { response: profileRes, data: profileData } = await makeApiCall('/auth/profile');
+                
+                if (profileRes.ok && profileData.success) {
+                    logResult(containerId, '✅ トークン検証成功', 'success');
+                } else {
+                    logResult(containerId, `❌ トークン検証失敗: ${profileData.error}`, 'error');
+                }
+
+            } catch (error) {
+                logResult(containerId, `❌ 認証テストエラー: ${error.message}`, 'error');
+            }
+        }
+
+        // Test Vegetable API
+        async function testVegetableAPI() {
+            const containerId = 'vegetableResults';
+            logResult(containerId, '🌱 野菜品目APIテスト開始', 'info');
+
+            try {
+                // Test get vegetables (public endpoint)
+                logResult(containerId, '野菜品目一覧取得中...', 'info');
+                const { response, data } = await makeApiCall('/vegetables/list');
+
+                if (response.ok && data.success) {
+                    logResult(containerId, `✅ 野菜品目取得成功 (${data.data.length}件)`, 'success');
+                    
+                    if (data.data.length > 0) {
+                        const firstVegetable = data.data[0];
+                        logResult(containerId, `例: ${firstVegetable.name}`, 'info');
+                    }
+                } else {
+                    logResult(containerId, `❌ 野菜品目取得失敗: ${data.error}`, 'error');
+                }
+
+                // Test create vegetable (admin only)
+                if (authToken) {
+                    logResult(containerId, '野菜品目作成テスト中...', 'info');
+                    const createResult = await makeApiCall('/vegetables/create', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            name: `テスト野菜_${Date.now()}`,
+                            description: 'テスト用野菜品目'
+                        })
+                    });
+
+                    if (createResult.response.ok) {
+                        logResult(containerId, '✅ 野菜品目作成成功', 'success');
+                    } else {
+                        logResult(containerId, `⚠️ 野菜品目作成: ${createResult.data.error}`, 'warning');
+                    }
+                }
+
+            } catch (error) {
+                logResult(containerId, `❌ 野菜品目APIテストエラー: ${error.message}`, 'error');
+            }
+        }
+
+        // Test Harvest Request API
+        async function testHarvestAPI() {
+            const containerId = 'harvestResults';
+            logResult(containerId, '📝 集荷申請APIテスト開始', 'info');
+
+            if (!authToken) {
+                logResult(containerId, '❌ 認証が必要です。先に認証テストを実行してください', 'error');
+                return;
+            }
+
+            try {
+                // Test create harvest request
+                logResult(containerId, '集荷申請作成中...', 'info');
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                const { response, data } = await makeApiCall('/harvest/submit', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        vegetable_item: 'トマト',
+                        delivery_date: tomorrow.toISOString().split('T')[0],
+                        time_slot: 'morning',
+                        quantity: 10.5,
+                        location: 'テスト農場',
+                        contact_phone: '090-1234-5678',
+                        notes: 'テスト申請'
+                    })
+                });
+
+                if (response.ok && data.success) {
+                    logResult(containerId, '✅ 集荷申請作成成功', 'success');
+                    
+                    // Test get harvest requests
+                    logResult(containerId, '申請一覧取得中...', 'info');
+                    const { response: listRes, data: listData } = await makeApiCall('/harvest/list');
+                    
+                    if (listRes.ok && listData.success) {
+                        logResult(containerId, `✅ 申請一覧取得成功 (${listData.data.length}件)`, 'success');
+                    } else {
+                        logResult(containerId, `❌ 申請一覧取得失敗: ${listData.error}`, 'error');
+                    }
+                } else {
+                    logResult(containerId, `❌ 集荷申請作成失敗: ${data.error}`, 'error');
+                }
+
+            } catch (error) {
+                logResult(containerId, `❌ 集荷申請APIテストエラー: ${error.message}`, 'error');
+            }
+        }
+
+        // Test User Management API
+        async function testUserAPI() {
+            const containerId = 'userResults';
+            logResult(containerId, '👥 ユーザー管理APIテスト開始', 'info');
+
+            try {
+                const config = getTestConfig();
+                
+                // Test get users (requires admin token)
+                if (config.adminToken) {
+                    logResult(containerId, 'ユーザー一覧取得中...', 'info');
+                    const { response, data } = await makeApiCall('/users/list', {
+                        headers: { 'Authorization': `Bearer ${config.adminToken}` }
+                    });
+
+                    if (response.ok && data.success) {
+                        logResult(containerId, `✅ ユーザー一覧取得成功 (${data.data.length}件)`, 'success');
+                    } else {
+                        logResult(containerId, `❌ ユーザー一覧取得失敗: ${data.error}`, 'error');
+                    }
+                } else {
+                    logResult(containerId, '⚠️ 管理者トークンが設定されていません', 'warning');
+                }
+
+            } catch (error) {
+                logResult(containerId, `❌ ユーザー管理APIテストエラー: ${error.message}`, 'error');
+            }
+        }
+
+        // Test LINE Integration
+        async function testLINEIntegration() {
+            const containerId = 'lineResults';
+            logResult(containerId, '📱 LINE連携テスト開始', 'info');
+
+            try {
+                // Test LINE webhook (basic structure check)
+                logResult(containerId, 'LINE Webhookエンドポイント確認中...', 'info');
+                const { response } = await fetch(`${getApiUrl()}/webhook/line`, {
+                    method: 'GET'
+                });
+
+                if (response.status === 405) {
+                    logResult(containerId, '✅ LINE Webhookエンドポイント確認完了', 'success');
+                } else {
+                    logResult(containerId, `⚠️ 予期しないレスポンス: ${response.status}`, 'warning');
+                }
+
+                // Test announcement broadcast (if admin token available)
+                const config = getTestConfig();
+                if (config.adminToken) {
+                    logResult(containerId, 'お知らせ配信テスト中...', 'info');
+                    const { response: announceRes, data: announceData } = await makeApiCall('/admin/announcements', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${config.adminToken}` },
+                        body: JSON.stringify({
+                            title: 'テストお知らせ',
+                            message: 'これはテスト用のお知らせです',
+                            send_line: false,
+                            recipients: 'all'
+                        })
+                    });
+
+                    if (announceRes.ok && announceData.success) {
+                        logResult(containerId, '✅ お知らせ作成成功', 'success');
+                    } else {
+                        logResult(containerId, `❌ お知らせ作成失敗: ${announceData.error}`, 'error');
+                    }
+                }
+
+            } catch (error) {
+                logResult(containerId, `❌ LINE連携テストエラー: ${error.message}`, 'error');
+            }
+        }
+
+        // Test Admin API
+        async function testAdminAPI() {
+            const containerId = 'adminResults';
+            logResult(containerId, '⚙️ 管理機能テスト開始', 'info');
+
+            const config = getTestConfig();
+            if (!config.adminToken) {
+                logResult(containerId, '❌ 管理者トークンが必要です', 'error');
+                return;
+            }
+
+            try {
+                // Test dashboard API
+                logResult(containerId, 'ダッシュボード情報取得中...', 'info');
+                const { response, data } = await makeApiCall('/admin/dashboard', {
+                    headers: { 'Authorization': `Bearer ${config.adminToken}` }
+                });
+
+                if (response.ok && data.success) {
+                    logResult(containerId, '✅ ダッシュボード情報取得成功', 'success');
+                    logResult(containerId, `総ユーザー数: ${data.data.summary.users.total}`, 'info');
+                    logResult(containerId, `申請中: ${data.data.summary.harvest.pending}`, 'info');
+                } else {
+                    logResult(containerId, `❌ ダッシュボード取得失敗: ${data.error}`, 'error');
+                }
+
+            } catch (error) {
+                logResult(containerId, `❌ 管理機能テストエラー: ${error.message}`, 'error');
+            }
+        }
+
+        // Test Performance
+        async function testPerformance() {
+            const containerId = 'performanceResults';
+            logResult(containerId, '⚡ パフォーマンステスト開始', 'info');
+
+            const tests = [
+                { name: '野菜品目一覧', endpoint: '/vegetables/list' },
+                { name: '申請一覧', endpoint: '/harvest/list', auth: true }
+            ];
+
+            for (const test of tests) {
+                try {
+                    const startTime = performance.now();
+                    
+                    const options = test.auth && authToken ? 
+                        { headers: { 'Authorization': `Bearer ${authToken}` } } : {};
+                    
+                    const { response } = await makeApiCall(test.endpoint, options);
+                    const endTime = performance.now();
+                    const duration = Math.round(endTime - startTime);
+
+                    if (response.ok) {
+                        const status = duration < 1000 ? '✅' : duration < 3000 ? '⚠️' : '❌';
+                        logResult(containerId, `${status} ${test.name}: ${duration}ms`, 
+                                 duration < 1000 ? 'success' : duration < 3000 ? 'warning' : 'error');
+                    } else {
+                        logResult(containerId, `❌ ${test.name}: HTTP ${response.status}`, 'error');
+                    }
+                } catch (error) {
+                    logResult(containerId, `❌ ${test.name}: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Test Error Handling
+        async function testErrorHandling() {
+            const containerId = 'errorResults';
+            logResult(containerId, '🚨 エラーハンドリングテスト開始', 'info');
+
+            const errorTests = [
+                { name: '存在しないエンドポイント', endpoint: '/nonexistent', expectedStatus: 404 },
+                { name: '無効なJSON', endpoint: '/auth/login', method: 'POST', body: 'invalid json', expectedStatus: 400 },
+                { name: '認証なしでプロテクト済みエンドポイント', endpoint: '/harvest/list', expectedStatus: 401 }
+            ];
+
+            for (const test of errorTests) {
+                try {
+                    const options = {
+                        method: test.method || 'GET'
+                    };
+
+                    if (test.body) {
+                        options.body = test.body;
+                        options.headers = { 'Content-Type': 'application/json' };
+                    }
+
+                    const { response } = await fetch(`${getApiUrl()}${test.endpoint}`, options);
+                    
+                    if (response.status === test.expectedStatus) {
+                        logResult(containerId, `✅ ${test.name}: 期待通りのエラー (${response.status})`, 'success');
+                    } else {
+                        logResult(containerId, `⚠️ ${test.name}: 予期しないステータス (${response.status})`, 'warning');
+                    }
+                } catch (error) {
+                    logResult(containerId, `❌ ${test.name}: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Run All Tests
+        async function runAllTests() {
+            clearAllResults();
+            testStats.startTime = Date.now();
+            
+            const progressBar = document.getElementById('progressBar');
+            const progressContainer = document.getElementById('progressBarContainer');
+            progressContainer.style.display = 'block';
+
+            const tests = [
+                testAuth,
+                testVegetableAPI,
+                testHarvestAPI,
+                testUserAPI,
+                testLINEIntegration,
+                testAdminAPI,
+                testPerformance,
+                testErrorHandling
+            ];
+
+            logResult('overallResults', '🚀 全体テスト実行開始', 'info');
+
+            for (let i = 0; i < tests.length; i++) {
+                const progress = ((i + 1) / tests.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                try {
+                    await tests[i]();
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Small delay between tests
+                } catch (error) {
+                    logResult('overallResults', `❌ テスト ${i + 1} でエラー: ${error.message}`, 'error');
+                }
+            }
+
+            logResult('overallResults', '🏁 全体テスト完了', 'info');
+            logResult('overallResults', `成功: ${testStats.passed}, 失敗: ${testStats.failed}, 総数: ${testStats.total}`, 'info');
+            
+            progressContainer.style.display = 'none';
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            logResult('overallResults', '🧪 統合テストシステム準備完了', 'info');
+            logResult('overallResults', '各セクションのテストボタンをクリックするか、「全テスト実行」で一括実行してください', 'info');
+        });
+    </script>
+</body>
+</html>

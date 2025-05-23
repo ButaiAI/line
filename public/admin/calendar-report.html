@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>野菜集荷管理システム - カレンダー帳票</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    @media print {
+      body {
+        font-size: 12px;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-break {
+        page-break-after: always;
+      }
+      .calendar-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .calendar-cell {
+        border: 1px solid #000;
+        vertical-align: top;
+        height: 120px;
+        padding: 4px;
+      }
+      .calendar-header-cell {
+        border: 1px solid #000;
+        text-align: center;
+        font-weight: bold;
+        background-color: #f0f0f0;
+        padding: 8px;
+      }
+      .calendar-date {
+        font-weight: bold;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+      .calendar-item {
+        font-size: 10px;
+        margin-bottom: 1px;
+        line-height: 1.2;
+      }
+      .month-summary {
+        margin-bottom: 20px;
+        border: 2px solid #000;
+        padding: 10px;
+      }
+    }
+    
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      background-color: #ddd;
+    }
+    
+    .calendar-header {
+      background-color: #4caf50;
+      color: white;
+      text-align: center;
+      font-weight: bold;
+      padding: 12px;
+    }
+    
+    .calendar-cell {
+      background-color: white;
+      min-height: 120px;
+      padding: 8px;
+      position: relative;
+    }
+    
+    .calendar-cell.other-month {
+      background-color: #f5f5f5;
+      color: #999;
+    }
+    
+    .calendar-date {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    
+    .calendar-item {
+      font-size: 11px;
+      margin-bottom: 2px;
+      padding: 2px 4px;
+      background-color: #e8f5e9;
+      border-radius: 3px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .calendar-item-user {
+      font-weight: 500;
+      color: #2e7d32;
+    }
+    
+    .calendar-item-quantity {
+      color: #1976d2;
+      font-weight: bold;
+    }
+    
+    .calendar-total {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      background-color: #4caf50;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, #4caf50, #45a049);
+      color: white;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .summary-value {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    
+    .summary-label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .print-only {
+      display: none;
+    }
+
+    @media print {
+      .print-only {
+        display: block !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gray-100">
+  <!-- Header -->
+  <header class="bg-green-600 text-white shadow-md no-print">
+    <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+      <h1 class="text-xl font-bold">野菜集荷管理システム - カレンダー帳票</h1>
+      <div class="flex items-center space-x-4">
+        <span class="text-sm">管理者: システム管理者</span>
+        <a href="../admin/" class="bg-white bg-opacity-20 px-3 py-1 rounded-md text-sm hover:bg-opacity-30">
+          ダッシュボードへ戻る
+        </a>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <main class="max-w-full mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <!-- Controls -->
+    <div class="mb-6 no-print">
+      <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+          <div>
+            <label for="monthSelect" class="block text-sm font-medium text-gray-700 mb-1">表示月</label>
+            <input type="month" id="monthSelect" class="border border-gray-300 p-2 rounded-md">
+          </div>
+          <div class="pt-6">
+            <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mr-2">
+              印刷
+            </button>
+            <button onclick="exportToPDF()" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+              PDF出力
+            </button>
+          </div>
+        </div>
+        
+        <div class="flex space-x-4">
+          <div class="summary-card">
+            <div class="summary-value" id="totalRequests">0</div>
+            <div class="summary-label">総申請数</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-value" id="totalQuantity">0</div>
+            <div class="summary-label">総数量</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Calendar Report -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <!-- Calendar Header -->
+      <div class="bg-green-600 text-white text-center py-4">
+        <h2 class="text-2xl font-bold" id="monthTitle">納品予定カレンダー</h2>
+        <p class="text-sm mt-1" id="monthSummary">総申請数: 0件 | 総数量: 0個</p>
+      </div>
+      
+      <!-- Calendar Grid for Screen -->
+      <div class="calendar-grid no-print" id="calendarGrid">
+        <!-- Calendar Headers -->
+        <div class="calendar-header">日</div>
+        <div class="calendar-header">月</div>
+        <div class="calendar-header">火</div>
+        <div class="calendar-header">水</div>
+        <div class="calendar-header">木</div>
+        <div class="calendar-header">金</div>
+        <div class="calendar-header">土</div>
+      </div>
+      
+      <!-- Calendar Table for Print -->
+      <div class="print-only" id="printCalendar">
+        <div class="month-summary">
+          <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 8px;" id="printMonthTitle">納品予定一覧</h2>
+          <p style="margin-bottom: 4px;" id="printTotalRequests">総申請数: 0件</p>
+          <p id="printTotalQuantity">総数量: 0個</p>
+        </div>
+        
+        <table class="calendar-table">
+          <thead>
+            <tr>
+              <th class="calendar-header-cell">日</th>
+              <th class="calendar-header-cell">月</th>
+              <th class="calendar-header-cell">火</th>
+              <th class="calendar-header-cell">水</th>
+              <th class="calendar-header-cell">木</th>
+              <th class="calendar-header-cell">金</th>
+              <th class="calendar-header-cell">土</th>
+            </tr>
+          </thead>
+          <tbody id="printCalendarBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Detailed List -->
+    <div class="mt-8 bg-white rounded-lg shadow no-print">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-bold text-gray-900">詳細リスト</h3>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">日付</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ユーザー</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">品目</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">数量</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200" id="detailList">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+  
+  <script src="../js/calendar-report.js"></script>
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>オリコンレンタル申請</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+      font-size: 32px;
+      position: fixed;
+      width: 100%;
+    }
+
+    /* メインコンテナ */
+    .app-container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ヘッダー */
+    .header {
+      background: #4caf50;
+      color: white;
+      padding: 24px 32px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      font-weight: 600;
+    }
+
+    .header-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 16px 32px;
+      border-radius: 40px;
+      font-size: 32px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .header-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* スクロールコンテナ */
+    .scroll-container {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 180px;
+    }
+
+    .main-content {
+      padding: 24px;
+    }
+
+    /* セクションタイトル */
+    .section-title {
+      font-size: 40px;
+      font-weight: 600;
+      margin: 24px 0 16px 0;
+      color: #333;
+      border-bottom: 2px solid #4caf50;
+      padding-bottom: 8px;
+    }
+
+    /* 申請フォーム */
+    .application-form {
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 16px;
+      font-size: 32px;
+      border: 2px solid #ddd;
+      border-radius: 16px;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #4caf50;
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+    }
+
+    .form-input[type="date"] {
+      -webkit-appearance: none;
+      appearance: none;
+      padding-right: 40px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: calc(100% - 16px) center;
+    }
+
+    .form-input[type="number"] {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    /* 申請履歴 */
+    .history-section {
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    }
+
+    .history-item {
+      padding: 16px;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.2s;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .history-date {
+      font-weight: 600;
+      font-size: 32px;
+      color: #333;
+    }
+
+    .history-details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .history-quantity {
+      font-size: 32px;
+      font-weight: 600;
+      color: #4caf50;
+    }
+
+    .history-status {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: #fff3e0;
+      color: #f57c00;
+    }
+
+    .status-approved {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .status-rejected {
+      background: #ffebee;
+      color: #d32f2f;
+    }
+
+    /* 送信ボタン */
+    .submit-section {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px;
+      background: white;
+      border-top: 1px solid #e0e0e0;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 28px;
+      border: none;
+      border-radius: 16px;
+      font-size: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background-color 0.2s, opacity 0.2s;
+    }
+
+    .btn-primary {
+      background: #4caf50;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #45a049;
+    }
+    
+    .btn-primary:disabled {
+      background: #9e9e9e;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    /* エラーメッセージ */
+    .error-message {
+      color: #f44336;
+      font-size: 28px;
+      margin-top: 8px;
+    }
+    
+    /* 成功メッセージ */
+    .success-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .success-modal.visible {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .success-content {
+      background: white;
+      padding: 40px;
+      border-radius: 24px;
+      width: 80%;
+      max-width: 600px;
+      text-align: center;
+    }
+    
+    .success-icon {
+      color: #4caf50;
+      font-size: 80px;
+      margin-bottom: 24px;
+    }
+    
+    .success-title {
+      font-size: 40px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    .success-message {
+      font-size: 32px;
+      margin-bottom: 32px;
+    }
+
+    /* Safe Area対応 */
+    @supports (padding: max(0px)) {
+      .header {
+        padding-top: max(24px, env(safe-area-inset-top));
+      }
+      
+      .submit-section {
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+      }
+    }
+
+    /* ローディング */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0s linear 0.3s, opacity 0.3s;
+    }
+
+    .loading-overlay.visible {
+      visibility: visible;
+      opacity: 1;
+      transition-delay: 0s;
+    }
+
+    .spinner {
+      width: 100px;
+      height: 100px;
+      border: 16px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #4caf50;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* 通知スタイル */
+    .notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 40px;
+      border-radius: 24px;
+      z-index: 10000;
+      font-size: 36px;
+      text-align: center;
+      max-width: 90%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .notification .close-button {
+      margin-top: 20px;
+      padding: 16px 40px;
+      background: #4caf50;
+      border-radius: 12px;
+      cursor: pointer;
+      display: inline-block;
+      font-size: 32px;
+      transition: background-color 0.2s;
+    }
+
+    .notification .close-button:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="header">
+      <div class="header-content">
+        <h1>オリコンレンタル申請</h1>
+        <button class="header-btn" onclick="goBack()">戻る</button>
+      </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="scroll-container">
+      <div class="main-content">
+        <!-- 申請フォーム -->
+        <div class="section-title">オリコンレンタル申請</div>
+        <div class="application-form">
+          <div class="form-group">
+            <label for="pickupDate" class="form-label">受け取り希望日</label>
+            <input type="date" id="pickupDate" class="form-input">
+            <div id="pickupDateError" class="error-message"></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="quantity" class="form-label">必要数量（個）</label>
+            <input type="number" id="quantity" class="form-input" min="1" max="100" value="1">
+            <div id="quantityError" class="error-message"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="returnDate" class="form-label">返却予定日</label>
+            <input type="date" id="returnDate" class="form-input">
+            <div id="returnDateError" class="error-message"></div>
+          </div>
+        </div>
+        
+        <!-- 申請履歴 -->
+        <div class="section-title">申請履歴</div>
+        <div class="history-section" id="historyContainer">
+          <!-- 申請履歴が動的に生成されます -->
+          <div id="loadingHistory" style="text-align: center; padding: 20px;">
+            履歴を読み込んでいます...
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 送信ボタン -->
+    <div class="submit-section">
+      <button class="btn btn-primary" id="submitBtn" onclick="submitApplication()">申請する</button>
+    </div>
+  </div>
+  
+  <!-- 成功モーダル -->
+  <div class="success-modal" id="successModal">
+    <div class="success-content">
+      <div class="success-icon">✓</div>
+      <div class="success-title">申請を受け付けました</div>
+      <div class="success-message">オリコンレンタルの申請を受け付けました。管理者が確認後、対応いたします。</div>
+      <button class="btn btn-primary" onclick="closeSuccessModal()">OK</button>
+    </div>
+  </div>
+  
+  <!-- ローディングオーバーレイ -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
+
+  <script src="/js/oricon-rental.js"></script>
+</body>
+</html>

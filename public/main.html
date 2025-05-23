@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>野菜集荷管理システム - メイン</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🥬 野菜集荷管理</h1>
+            <div class="user-info">
+                <span id="userName">ログイン中...</span>
+                <button id="logoutBtn" class="btn btn-secondary">ログアウト</button>
+            </div>
+        </header>
+        
+        <main class="main-content">
+            <div class="tabs">
+                <button class="tab-button active" data-tab="harvest">集荷申請</button>
+                <button class="tab-button" data-tab="calendar">カレンダー</button>
+                <button class="tab-button" data-tab="history">申請履歴</button>
+                <button class="tab-button" data-tab="oricon">オリコン貸出</button>
+            </div>
+            
+            <!-- 集荷申請タブ -->
+            <div id="harvestTab" class="tab-content active">
+                <div class="card">
+                    <h2>🚚 集荷申請</h2>
+                    <form id="harvestForm">
+                        <div class="form-group">
+                            <label for="vegetableItem">野菜品目:</label>
+                            <select id="vegetableItem" name="vegetableItem" required>
+                                <option value="">品目を選択してください</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="deliveryDate">集荷希望日:</label>
+                            <input type="date" id="deliveryDate" name="deliveryDate" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="timeSlot">集荷時間帯:</label>
+                            <select id="timeSlot" name="timeSlot" required>
+                                <option value="">時間帯を選択してください</option>
+                                <option value="morning">午前 (8:00-12:00)</option>
+                                <option value="afternoon">午後 (13:00-17:00)</option>
+                                <option value="evening">夕方 (17:00-19:00)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quantity">数量 (kg):</label>
+                            <input type="number" id="quantity" name="quantity" min="0.1" step="0.1" max="10000" required placeholder="例: 50.5">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="location">集荷場所:</label>
+                            <textarea id="location" name="location" rows="2" required placeholder="詳細な住所や目印をご記入ください"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="contactPhone">連絡先電話番号:</label>
+                            <input type="tel" id="contactPhone" name="contactPhone" required placeholder="090-1234-5678">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="notes">備考:</label>
+                            <textarea id="notes" name="notes" rows="3" placeholder="特記事項があれば記入してください"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">申請する</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- カレンダータブ -->
+            <div id="calendarTab" class="tab-content">
+                <div class="card">
+                    <h2>📅 カレンダービュー</h2>
+                    <p style="margin-bottom: 1rem;">モバイル最適化されたカレンダーインターフェースで申請を管理</p>
+                    <a href="/calendar.html" class="btn btn-primary" style="display: inline-block; text-decoration: none; text-align: center;">
+                        カレンダーを開く
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 申請履歴タブ -->
+            <div id="historyTab" class="tab-content">
+                <div class="card">
+                    <h2>📋 申請履歴</h2>
+                    <div id="historyList" class="history-list">
+                        <div class="loading">読み込み中...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- オリコン貸出タブ -->
+            <div id="oriconTab" class="tab-content">
+                <div class="card">
+                    <h2>📦 オリコン貸出申請</h2>
+                    <p style="margin-bottom: 1rem;">モバイル最適化されたオリコンレンタル申請インターフェース</p>
+                    <a href="/oricon-rental.html" class="btn btn-primary" style="display: inline-block; text-decoration: none; text-align: center;">
+                        オリコンレンタル申請
+                    </a>
+                    
+                    <div id="oriconHistory" class="oricon-history" style="margin-top: 2rem;">
+                        <h3>最近の貸出履歴</h3>
+                        <div class="loading">読み込み中...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <div id="messageArea" class="message-area"></div>
+    </div>
+    
+    <script src="./js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>野菜集荷管理</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+      font-size: 32px;
+      position: fixed;
+      width: 100%;
+    }
+
+    /* メインコンテナ */
+    .app-container {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ヘッダー */
+    .header {
+      background: #4caf50;
+      color: white;
+      padding: 24px 32px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      font-weight: 600;
+    }
+
+    .header-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 16px 32px;
+      border-radius: 40px;
+      font-size: 32px;
+      cursor: pointer;
+    }
+
+    /* 月選択 */
+    .month-selector {
+      background: white;
+      padding: 24px 32px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .month-control {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .month-btn {
+      background: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .month-btn:active {
+      background: #e0e0e0;
+    }
+
+    .current-month {
+      font-size: 48px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* スクロールコンテナ */
+    .scroll-container {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 180px;
+    }
+
+    .main-content {
+      padding: 24px;
+    }
+
+    /* セクションタイトル */
+    .section-title {
+      font-size: 40px;
+      font-weight: 600;
+      margin: 24px 0 16px 0;
+      color: #333;
+      border-bottom: 2px solid #4caf50;
+      padding-bottom: 8px;
+    }
+
+    /* カレンダーグリッド */
+    .calendar-grid {
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+    }
+
+    .calendar-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-bottom: 16px;
+    }
+
+    .calendar-header div {
+      text-align: center;
+      font-size: 48px;
+      font-weight: 600;
+      color: #666;
+      padding: 16px 0;
+    }
+
+    .calendar-body {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      border: 1px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 8px;
+      background: white;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .calendar-day:hover {
+      background: #f8f9fa;
+    }
+
+    .calendar-day.other-month {
+      opacity: 0.3;
+    }
+
+    .calendar-day.selected {
+      border-color: #42a5f5;
+      background: #e3f2fd;
+      border-width: 2px;
+    }
+
+    .calendar-day.has-requests {
+      border-color: #4caf50;
+      background: #e8f5e9;
+      border-width: 2px;
+    }
+
+    .day-number {
+      font-weight: 600;
+      font-size: 42px;
+      margin-bottom: 4px;
+      text-align: center;
+      line-height: 1;
+    }
+
+    .day-quantities {
+      font-size: 32px;
+      margin-top: auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .day-quantity.existing {
+      display: flex;
+      justify-content: space-between;
+      font-size: 28px;
+      padding: 2px 4px;
+      color: #2e7d32;
+      font-weight: 600;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .day-quantity.pending {
+      display: flex;
+      justify-content: space-between;
+      font-size: 28px;
+      padding: 2px 4px;
+      color: #1976d2;
+      font-weight: 600;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .more-indicator {
+      font-size: 20px;
+      color: #777;
+      font-weight: bold;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 2px;
+      border-radius: 8px;
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    /* 統計サマリー */
+    .summary-section {
+      background: white;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .summary-title {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #333;
+    }
+
+    .summary-stats {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .stat-card {
+      text-align: center;
+      padding: 12px;
+      background: #f8f8f8;
+      border-radius: 12px;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .stat-value {
+      font-size: 40px;
+      font-weight: 600;
+      color: #4caf50;
+    }
+
+    .stat-label {
+      font-size: 24px;
+      color: #666;
+    }
+
+    /* 品目選択パネル */
+    .vegetable-select-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e0e0e0;
+      padding: 32px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+      transform: translateY(100%);
+      transition: transform 0.3s;
+      z-index: 1100;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .vegetable-select-panel.active {
+      transform: translateY(0);
+    }
+
+    .vegetable-select-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .vegetable-select-title {
+      font-weight: 600;
+      font-size: 40px;
+    }
+
+    .close-panel {
+      background: none;
+      border: none;
+      font-size: 48px;
+      color: #666;
+      cursor: pointer;
+      padding: 8px;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .vegetable-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .vegetable-item {
+      padding: 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 16px;
+      text-align: center;
+      font-size: 36px;
+      background: #f8f8f8;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .vegetable-item:hover {
+      background: #e8f5e9;
+      border-color: #4caf50;
+    }
+
+    /* クイック入力パネル */
+    .quick-input-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e0e0e0;
+      padding: 32px;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+      transform: translateY(100%);
+      transition: transform 0.3s;
+      z-index: 1100;
+    }
+
+    .quick-input-panel.active {
+      transform: translateY(0);
+    }
+
+    .quick-input-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .quick-input-title {
+      font-weight: 600;
+      font-size: 40px;
+    }
+
+    .input-display {
+      border: 2px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 24px;
+      background-color: #f9f9f9;
+    }
+
+    .input-display-field {
+      width: 100%;
+      text-align: right;
+      font-size: 48px;
+      font-weight: bold;
+      border: none;
+      background: transparent;
+      padding: 8px;
+      color: #333;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .quick-action-btn {
+      padding: 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 16px;
+      background: #f5f5f5;
+      font-size: 36px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-action-btn:hover {
+      background: #e0e0e0;
+    }
+
+    .number-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .number-btn {
+      padding: 24px;
+      font-size: 48px;
+      font-weight: 600;
+      border: 1px solid #e0e0e0;
+      border-radius: 16px;
+      background: #f5f5f5;
+      cursor: pointer;
+      min-height: 120px;
+      transition: all 0.2s;
+    }
+
+    .number-btn:hover {
+      background: #e0e0e0;
+    }
+
+    .confirm-button-container {
+      margin-top: 24px;
+    }
+
+    .confirm-button {
+      width: 100%;
+      padding: 24px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 36px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .confirm-button:hover {
+      background-color: #45a049;
+    }
+
+    /* 詳細モーダル */
+    .details-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .details-modal.active {
+      display: flex;
+    }
+
+    .details-content {
+      background: white;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 800px;
+      padding: 0;
+      overflow: hidden;
+      max-height: 80vh;
+    }
+
+    .details-header {
+      background: #4caf50;
+      color: white;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .details-title {
+      font-size: 36px;
+      font-weight: 600;
+    }
+
+    .details-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 48px;
+      cursor: pointer;
+    }
+
+    .details-body {
+      padding: 24px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .details-date {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .details-items {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .details-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: #f9f9f9;
+      border-radius: 16px;
+      font-size: 32px;
+    }
+
+    .details-item-info {
+      flex: 1;
+    }
+
+    .details-item-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .details-item-quantity {
+      color: #4caf50;
+      font-weight: 600;
+    }
+
+    .details-item-actions {
+      display: flex;
+      gap: 8px;
+      margin-left: 16px;
+    }
+
+    .edit-btn, .delete-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 24px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .edit-btn {
+      background: #2196f3;
+      color: white;
+    }
+
+    .delete-btn {
+      background: #f44336;
+      color: white;
+    }
+
+    .edit-btn:hover, .delete-btn:hover {
+      opacity: 0.8;
+    }
+
+    /* 編集モーダル */
+    .edit-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .edit-modal.active {
+      display: flex;
+    }
+
+    .edit-content {
+      background: white;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 600px;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .edit-header {
+      background: #2196f3;
+      color: white;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .edit-title {
+      font-size: 36px;
+      font-weight: 600;
+    }
+
+    .edit-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 48px;
+      cursor: pointer;
+    }
+
+    .edit-body {
+      padding: 24px;
+    }
+
+    .edit-field {
+      margin-bottom: 24px;
+    }
+
+    .edit-label {
+      display: block;
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    .edit-input {
+      width: 100%;
+      padding: 16px;
+      font-size: 32px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      background: white;
+    }
+
+    .edit-input:focus {
+      outline: none;
+      border-color: #2196f3;
+    }
+
+    .edit-actions {
+      padding: 24px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .btn-save, .btn-cancel {
+      padding: 16px 32px;
+      border: none;
+      border-radius: 12px;
+      font-size: 28px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn-save {
+      background: #4caf50;
+      color: white;
+    }
+
+    .btn-cancel {
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .btn-save:hover, .btn-cancel:hover {
+      opacity: 0.8;
+    }
+
+    /* ローディング */
+    .loading {
+      text-align: center;
+      padding: 80px 40px;
+      color: #666;
+      font-size: 36px;
+    }
+
+    /* カレンダー凡例 */
+    .legend {
+      display: flex;
+      justify-content: center;
+      margin-top: 16px;
+      gap: 24px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      font-size: 28px;
+    }
+
+    .legend-color {
+      width: 36px;
+      height: 36px;
+      margin-right: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .legend-color.existing {
+      background-color: #e8f5e9;
+      border-color: #4caf50;
+    }
+
+    .legend-color.pending {
+      background-color: #e3f2fd;
+      border-color: #42a5f5;
+    }
+
+    /* 送信ボタン */
+    .submit-section {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px;
+      background: white;
+      border-top: 1px solid #e0e0e0;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 28px;
+      border: none;
+      border-radius: 16px;
+      font-size: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background-color 0.2s;
+    }
+
+    .btn-primary {
+      background: #4caf50;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #45a049;
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    /* Safe Area対応 */
+    @supports (padding: max(0px)) {
+      .header {
+        padding-top: max(24px, env(safe-area-inset-top));
+      }
+      
+      .submit-section {
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+      }
+    }
+
+    /* 通知スタイル */
+    .notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 40px;
+      border-radius: 24px;
+      z-index: 10000;
+      font-size: 96px;
+      text-align: center;
+      max-width: 90%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .notification .close-button {
+      margin-top: 40px;
+      padding: 20px 40px;
+      background: #4caf50;
+      border-radius: 16px;
+      cursor: pointer;
+      display: inline-block;
+      font-size: 48px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="header">
+      <div class="header-content">
+        <h1>野菜集荷管理</h1>
+        <button class="header-btn" onclick="logout()">ログアウト</button>
+      </div>
+    </div>
+
+    <!-- 月選択 -->
+    <div class="month-selector">
+      <div class="month-control">
+        <button class="month-btn" onclick="changeMonth(-1)">&lt;</button>
+        <div class="current-month" id="currentMonth">2025年5月</div>
+        <button class="month-btn" onclick="changeMonth(1)">&gt;</button>
+      </div>
+    </div>
+
+    <!-- 統合されたメインコンテンツ -->
+    <div class="scroll-container">
+      <div class="main-content">
+        <!-- 申請統計セクション -->
+        <div class="summary-section">
+          <div class="summary-stats">
+            <div class="stat-card">
+              <div class="stat-value" id="nextShipDate">-</div>
+              <div class="stat-label">次の出荷日</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="totalRequests">0</div>
+              <div class="stat-label">総申請数</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- カレンダーグリッド -->
+        <div class="section-title">納品カレンダー</div>
+        <div class="calendar-grid">
+          <div class="calendar-header">
+            <div>日</div>
+            <div>月</div>
+            <div>火</div>
+            <div>水</div>
+            <div>木</div>
+            <div>金</div>
+            <div>土</div>
+          </div>
+          <div class="calendar-body" id="calendarBody">
+            <!-- カレンダーの日付が動的に生成されます -->
+          </div>
+          
+          <!-- カレンダー凡例 -->
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-color existing"></div>
+              <span>申請済</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color pending"></div>
+              <span>申請中</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 送信ボタン -->
+    <div class="submit-section">
+      <button class="btn btn-primary" onclick="submitAll()" id="submitBtn">一括申請する</button>
+    </div>
+  </div>
+
+  <!-- 品目選択パネル -->
+  <div class="vegetable-select-panel" id="vegetableSelectPanel">
+    <div class="vegetable-select-header">
+      <div class="vegetable-select-title">品目を選択</div>
+      <button class="close-panel" onclick="closeVegetablePanel()">&times;</button>
+    </div>
+    
+    <div class="vegetable-grid" id="vegetableGrid">
+      <!-- 野菜品目が動的に生成されます -->
+    </div>
+  </div>
+
+  <!-- クイック入力パネル -->
+  <div class="quick-input-panel" id="quickInputPanel">
+    <div class="quick-input-content">
+      <div class="quick-input-header">
+        <div class="quick-input-title">数量を入力</div>
+        <button class="close-panel" onclick="closeQuickInput()">&times;</button>
+      </div>
+      
+      <!-- 入力値表示エリア -->
+      <div class="input-display">
+        <input type="text" id="inputDisplay" readonly class="input-display-field">
+      </div>
+      
+      <div class="quick-actions">
+        <button class="quick-action-btn" onclick="quickFill(1)">1</button>
+        <button class="quick-action-btn" onclick="quickFill(5)">5</button>
+        <button class="quick-action-btn" onclick="quickFill(10)">10</button>
+        <button class="quick-action-btn" onclick="quickFill(20)">20</button>
+        <button class="quick-action-btn" onclick="quickFill(50)">50</button>
+      </div>
+      
+      <div class="number-pad">
+        <button class="number-btn" onclick="inputNumber(1)">1</button>
+        <button class="number-btn" onclick="inputNumber(2)">2</button>
+        <button class="number-btn" onclick="inputNumber(3)">3</button>
+        <button class="number-btn" onclick="inputNumber(4)">4</button>
+        <button class="number-btn" onclick="inputNumber(5)">5</button>
+        <button class="number-btn" onclick="inputNumber(6)">6</button>
+        <button class="number-btn" onclick="inputNumber(7)">7</button>
+        <button class="number-btn" onclick="inputNumber(8)">8</button>
+        <button class="number-btn" onclick="inputNumber(9)">9</button>
+        <button class="number-btn" onclick="clearInput()">C</button>
+        <button class="number-btn" onclick="inputNumber(0)">0</button>
+        <button class="number-btn" onclick="backspace()">←</button>
+      </div>
+      
+      <!-- 確定ボタン -->
+      <div class="confirm-button-container">
+        <button class="confirm-button" onclick="confirmInput()">確定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 詳細モーダル -->
+  <div class="details-modal" id="detailsModal">
+    <div class="details-content">
+      <div class="details-header">
+        <div class="details-title">納品詳細</div>
+        <button class="details-close" onclick="closeDetailsModal()">&times;</button>
+      </div>
+      <div class="details-body">
+        <div class="details-date" id="detailsDate"></div>
+        <div class="details-items" id="detailsItems">
+          <!-- 品目詳細が動的に生成されます -->
+        </div>
+      </div>
+      <div class="details-footer">
+        <button class="btn btn-primary" style="width: auto; padding: 16px 32px;" onclick="closeDetailsModal()">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 編集モーダル -->
+  <div class="edit-modal" id="editModal">
+    <div class="edit-content">
+      <div class="edit-header">
+        <div class="edit-title">申請編集</div>
+        <button class="edit-close" onclick="closeEditModal()">&times;</button>
+      </div>
+      <div class="edit-body">
+        <div class="edit-field">
+          <label for="editDate" class="edit-label">納品日</label>
+          <input type="date" id="editDate" class="edit-input">
+        </div>
+        <div class="edit-field">
+          <label for="editQuantity" class="edit-label">数量</label>
+          <input type="number" id="editQuantity" class="edit-input" min="1" max="999">
+        </div>
+      </div>
+      <div class="edit-actions">
+        <button class="btn-cancel" onclick="closeEditModal()">キャンセル</button>
+        <button class="btn-save" onclick="saveEdit()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/calendar.js"></script>
+</body>
+</html>

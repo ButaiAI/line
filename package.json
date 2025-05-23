@@ -1,0 +1,37 @@
+{
+  "name": "vegetable-harvest-system",
+  "version": "1.0.0",
+  "description": "野菜集荷管理システム - GASからVercelへの移行版",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static files ready'",
+    "deploy": "vercel --prod",
+    "deploy-preview": "vercel"
+  },
+  "keywords": [
+    "vegetable",
+    "harvest",
+    "management",
+    "line",
+    "vercel",
+    "supabase"
+  ],
+  "author": "vegetable-harvest-team",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "jsonwebtoken": "^9.0.2",
+    "crypto": "^1.0.1"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/vegetable-harvest-system.git"
+  }
+}

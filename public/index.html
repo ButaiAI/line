@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>野菜集荷管理システム - ログイン</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <meta name="description" content="野菜集荷管理システム - 農家の皆様の集荷申請を簡単に管理">
+    <meta name="theme-color" content="#4CAF50">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥬</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <div class="login-card fade-in">
+            <div class="logo">
+                <h1><span class="logo-icon">🥬</span>野菜集荷管理システム</h1>
+                <p>農家の皆様の集荷申請を簡単に管理</p>
+            </div>
+            
+            <div class="login-methods">
+                <!-- LINE ログイン -->
+                <div class="line-login">
+                    <button id="lineLoginBtn" class="btn btn-line btn-full" type="button">
+                        <span>🟢</span>
+                        <span>LINEでログイン</span>
+                    </button>
+                    <p class="text-muted text-center" style="margin-top: 12px; font-size: 0.9rem;">
+                        LINEアカウントで安全にログインできます
+                    </p>
+                </div>
+                
+                <!-- 開発者用テストログイン -->
+                <div class="test-login" id="testLoginSection">
+                    <h3>開発・テスト用ログイン</h3>
+                    <form id="testLoginForm">
+                        <div class="form-group">
+                            <label for="testLineId" class="form-label">LINE ID（テスト用）:</label>
+                            <input 
+                                type="text" 
+                                id="testLineId" 
+                                name="testLineId" 
+                                class="form-input"
+                                placeholder="Uxxxxxxxxxxxxxxxxxxxx" 
+                                value="U12345678901234567890"
+                                required
+                            >
+                            <small class="form-help">開発・テスト用のLINE User IDを入力してください</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="testUserName" class="form-label">ユーザー名:</label>
+                            <input 
+                                type="text" 
+                                id="testUserName" 
+                                name="testUserName" 
+                                class="form-input"
+                                placeholder="テストユーザー" 
+                                value="テストユーザー"
+                                required
+                            >
+                            <small class="form-help">表示用のユーザー名を入力してください</small>
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-full" id="testLoginSubmitBtn">
+                            <span class="loading d-none">
+                                <span class="loading-spinner"></span>
+                                <span>ログイン中...</span>
+                            </span>
+                            <span class="btn-text">テストログイン</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- メッセージエリア -->
+            <div id="messageArea" class="message-area d-none"></div>
+            
+            <!-- 使用方法 -->
+            <div class="usage-info" style="margin-top: 30px; text-align: left;">
+                <h4 style="color: #4CAF50; margin-bottom: 15px;">📱 使用方法</h4>
+                <ul style="color: #666; font-size: 0.9rem; line-height: 1.6; padding-left: 20px;">
+                    <li><strong>LINE認証:</strong> LINEアカウントで安全にログイン</li>
+                    <li><strong>集荷申請:</strong> 野菜の集荷申請を簡単に登録</li>
+                    <li><strong>履歴確認:</strong> 過去の申請状況を一覧で確認</li>
+                    <li><strong>モバイル対応:</strong> スマートフォンでも快適に利用</li>
+                </ul>
+            </div>
+            
+            <!-- システム情報 -->
+            <div class="system-info text-center" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <p class="text-muted" style="font-size: 0.8rem;">
+                    野菜集荷管理システム v1.0<br>
+                    <span id="systemStatus" class="text-success">🟢 システム正常稼働中</span>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ローディングオーバーレイ -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <span>処理中...</span>
+        </div>
+    </div>
+
+    <script>
+        // アプリケーション設定
+        const APP_CONFIG = {
+            apiBaseUrl: window.location.origin,
+            lineChannelId: '2006505297', // 実際のLINE Channel IDに置き換える
+            redirectUri: window.location.origin + '/callback.html',
+            isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        };
+
+        // ユーティリティ関数
+        function showLoading(show = true) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        function showMessage(message, type = 'info') {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.textContent = message;
+            messageArea.className = `message-area ${type}`;
+            messageArea.classList.remove('d-none');
+            
+            // 5秒後に自動で非表示
+            setTimeout(() => {
+                messageArea.classList.add('d-none');
+            }, 5000);
+        }
+
+        function hideMessage() {
+            const messageArea = document.getElementById('messageArea');
+            messageArea.classList.add('d-none');
+        }
+
+        // LINE認証URL生成
+        function generateLineLoginUrl() {
+            const state = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('lineLoginState', state);
+            
+            const params = new URLSearchParams({
+                response_type: 'code',
+                client_id: APP_CONFIG.lineChannelId,
+                redirect_uri: APP_CONFIG.redirectUri,
+                state: state,
+                scope: 'profile openid'
+            });
+            
+            return 'https://access.line.me/oauth2/v2.1/authorize?' + params.toString();
+        }
+
+        // 手動ログイン（テスト用）
+        async function testLogin(lineId, userName) {
+            showLoading(true);
+            hideMessage();
+            
+            try {
+                console.log('テストログイン開始:', { lineId, userName });
+                
+                const response = await fetch(`${APP_CONFIG.apiBaseUrl}/api/auth/test-login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        lineId: lineId.trim(),
+                        userName: userName.trim()
+                    })
+                });
+
+                const result = await response.json();
+                console.log('テストログイン結果:', result);
+
+                if (result.success && result.token) {
+                    localStorage.setItem('authToken', result.token);
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                    
+                    showMessage('ログインに成功しました。メイン画面に移動します...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/main.html';
+                    }, 1500);
+                } else {
+                    throw new Error(result.error || 'ログインに失敗しました');
+                }
+                
+            } catch (error) {
+                console.error('テストログインエラー:', error);
+                showMessage(`ログインエラー: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 認証状態チェック
+        async function checkAuthStatus() {
+            const token = localStorage.getItem('authToken');
+            if (!token) return false;
+            
+            try {
+                const response = await fetch(`${APP_CONFIG.apiBaseUrl}/api/auth/verify`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.error('認証確認エラー:', error);
+            }
+            
+            // 無効なトークンをクリア
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            return false;
+        }
+
+        // システム状態チェック
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch(`${APP_CONFIG.apiBaseUrl}/api/health`, {
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
+                
+                const statusElement = document.getElementById('systemStatus');
+                if (response.ok) {
+                    statusElement.innerHTML = '🟢 システム正常稼働中';
+                    statusElement.className = 'text-success';
+                } else {
+                    throw new Error('システムエラー');
+                }
+            } catch (error) {
+                const statusElement = document.getElementById('systemStatus');
+                statusElement.innerHTML = '🔴 システムメンテナンス中';
+                statusElement.className = 'text-danger';
+                console.warn('システム状態確認失敗:', error);
+            }
+        }
+
+        // イベントリスナーの設定
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('ログイン画面初期化開始');
+            
+            // 開発環境でのみテストログインセクションを表示
+            const testLoginSection = document.getElementById('testLoginSection');
+            if (!APP_CONFIG.isDevelopment) {
+                testLoginSection.style.display = 'none';
+            }
+            
+            // 認証状態チェック
+            const isAuthenticated = await checkAuthStatus();
+            if (isAuthenticated) {
+                showMessage('既にログインしています。メイン画面に移動します...', 'info');
+                setTimeout(() => {
+                    window.location.href = '/main.html';
+                }, 1500);
+                return;
+            }
+            
+            // システム状態チェック
+            await checkSystemStatus();
+            
+            // LINEログインボタン
+            document.getElementById('lineLoginBtn').addEventListener('click', function() {
+                showMessage('LINE認証画面に移動します...', 'info');
+                const loginUrl = generateLineLoginUrl();
+                window.location.href = loginUrl;
+            });
+            
+            // テストログインフォーム
+            document.getElementById('testLoginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const submitBtn = document.getElementById('testLoginSubmitBtn');
+                const loading = submitBtn.querySelector('.loading');
+                const btnText = submitBtn.querySelector('.btn-text');
+                
+                // ボタン状態変更
+                loading.classList.remove('d-none');
+                btnText.classList.add('d-none');
+                submitBtn.disabled = true;
+                
+                try {
+                    const lineId = document.getElementById('testLineId').value;
+                    const userName = document.getElementById('testUserName').value;
+                    
+                    if (!lineId || !userName) {
+                        throw new Error('LINE IDとユーザー名を入力してください');
+                    }
+                    
+                    await testLogin(lineId, userName);
+                } catch (error) {
+                    showMessage(error.message, 'error');
+                } finally {
+                    // ボタン状態リセット
+                    loading.classList.add('d-none');
+                    btnText.classList.remove('d-none');
+                    submitBtn.disabled = false;
+                }
+            });
+            
+            // URLパラメータからのエラーメッセージ表示
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            if (error) {
+                let errorMessage = 'ログインエラーが発生しました';
+                switch (error) {
+                    case 'access_denied':
+                        errorMessage = 'LINE認証がキャンセルされました';
+                        break;
+                    case 'invalid_request':
+                        errorMessage = '無効なリクエストです';
+                        break;
+                    case 'server_error':
+                        errorMessage = 'サーバーエラーが発生しました';
+                        break;
+                    default:
+                        errorMessage = decodeURIComponent(error);
+                }
+                showMessage(errorMessage, 'error');
+            }
+            
+            console.log('ログイン画面初期化完了');
+        });
+
+        // エラーハンドリング
+        window.addEventListener('error', function(e) {
+            console.error('予期しないエラー:', e.error);
+            showMessage('予期しないエラーが発生しました。ページを再読み込みしてください。', 'error');
+        });
+
+        // ネットワークエラーハンドリング
+        window.addEventListener('online', function() {
+            showMessage('ネットワーク接続が回復しました', 'success');
+            checkSystemStatus();
+        });
+
+        window.addEventListener('offline', function() {
+            showMessage('ネットワーク接続が切断されました', 'warning');
+        });
+    </script>
+</body>
+</html>
