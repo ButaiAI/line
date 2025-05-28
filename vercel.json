@@ -8,6 +8,14 @@
   },
   "rewrites": [
     {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin/index.html"
+    },
+    {
       "source": "/admin/(.*)",
       "destination": "/admin/$1.html"
     },
@@ -18,6 +26,14 @@
     {
       "source": "/main",
       "destination": "/main.html"
+    },
+    {
+      "source": "/calendar",
+      "destination": "/calendar.html"
+    },
+    {
+      "source": "/oricon-rental",
+      "destination": "/oricon-rental.html"
     }
   ],
   "headers": [
